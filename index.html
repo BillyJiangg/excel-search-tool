@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>手机Excel查询系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4bb543;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --gray: #6c757d;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px 15px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        }
+        
+        h1 {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+            position: relative;
+        }
+        
+        .description {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            position: relative;
+        }
+        
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card-title i {
+            font-size: 1.4rem;
+        }
+        
+        .upload-area {
+            border: 2px dashed var(--primary);
+            border-radius: 10px;
+            padding: 25px 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .upload-area.active {
+            border-color: var(--success);
+            background-color: rgba(75, 181, 67, 0.05);
+        }
+        
+        .upload-area.error {
+            border-color: var(--danger);
+            background-color: rgba(220, 53, 69, 0.05);
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .upload-text {
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+        
+        .upload-hint {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+            box-shadow: 0 4px 8px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(67, 97, 238, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .file-list {
+            margin-top: 15px;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: var(--light);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .file-icon {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+        
+        .file-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+        }
+        
+        .file-remove {
+            color: var(--danger);
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 14px 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border 0.3s;
+            background: white;
+        }
+        
+        .search-input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            color: var(--gray);
+            font-size: 0.9rem;
+            padding: 10px 0;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+        }
+        
+        .results-header {
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .results-count {
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .results-container {
+            max-height: 50vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .result-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: var(--light);
+        }
+        
+        .result-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .result-item:hover {
+            background: #e9ecef;
+        }
+        
+        .result-table {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .result-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .result-field {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .result-label {
+            font-weight: 600;
+            color: var(--gray);
+            font-size: 0.8rem;
+            margin-bottom: 3px;
+        }
+        
+        .result-value {
+            word-break: break-word;
+            font-size: 0.95rem;
+        }
+        
+        .highlight {
+            background-color: var(--warning);
+            padding: 0 2px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+        
+        .empty-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px 20px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .tutorial {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid var(--warning);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .tutorial-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .tutorial-steps {
+            padding-left: 20px;
+        }
+        
+        .tutorial-step {
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            color: var(--gray);
+            font-size: 0.8rem;
+        }
+        
+        .mobile-only {
+            display: block;
+        }
+        
+        .desktop-only {
+            display: none;
+        }
+        
+        /* 响应式调整 */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 700px;
+            }
+            
+            .mobile-only {
+                display: none;
+            }
+            
+            .desktop-only {
+                display: block;
+            }
+            
+            .search-box {
+                flex-direction: row;
+            }
+            
+            .btn {
+                width: auto;
+            }
+            
+            .result-row {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            
+            .result-field {
+                flex: 1;
+                min-width: 150px;
+            }
+        }
+        
+        /* 防止iOS Safari缩放 */
+        @supports (-webkit-touch-callout: none) {
+            input, textarea, select {
+                font-size: 16px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-search"></i> Excel数据查询系统</h1>
+            <p class="description">手机端专用 - 上传Excel文件，输入关键词进行模糊查询</p>
+        </header>
+        
+        <div class="tutorial">
+            <div class="tutorial-title">
+                <i class="fas fa-mobile-alt"></i>
+                <span>手机使用指南</span>
+            </div>
+            <ol class="tutorial-steps">
+                <li class="tutorial-step">点击"选择Excel文件"按钮上传文件</li>
+                <li class="tutorial-step">等待文件解析完成（显示绿色提示）</li>
+                <li class="tutorial-step">在搜索框输入关键词</li>
+                <li class="tutorial-step">点击"搜索"按钮查看结果</li>
+            </ol>
+        </div>
+        
+        <section class="card">
+            <h2 class="card-title"><i class="fas fa-file-upload"></i> 上传Excel文件</h2>
+            <div class="upload-area" id="dropArea">
+                <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                <p class="upload-text">点击下方按钮选择Excel文件</p>
+                <p class="upload-hint">支持 .xlsx, .xls 格式，最多10个文件</p>
+                <p class="upload-hint mobile-only">每个文件最多1500行数据</p>
+            </div>
+            <button class="btn" id="uploadBtn">
+                <i class="fas fa-file-excel"></i> 选择Excel文件
+            </button>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" multiple style="display: none;">
+            
+            <div class="file-list" id="fileList"></div>
+        </section>
+        
+        <section class="card">
+            <h2 class="card-title"><i class="fas fa-search"></i> 数据搜索</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" class="search-input" placeholder="输入关键词进行搜索...">
+                <button class="btn" id="searchBtn">
+                    <i class="fas fa-search"></i> 搜索
+                </button>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="tableCount">0</div>
+                    <div class="stat-label">已加载表格</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="rowCount">0</div>
+                    <div class="stat-label">总数据行数</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="fileCount">0</div>
+                    <div class="stat-label">文件数量</div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="card">
+            <div class="results-header">
+                <h2 class="card-title" style="margin: 0;"><i class="fas fa-list-alt"></i> 查询结果</h2>
+                <span class="results-count" id="resultsCount">0 条记录</span>
+            </div>
+            
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>正在搜索中...</p>
+            </div>
+            
+            <div class="results-container" id="resultsContainer">
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="fas fa-search"></i></div>
+                    <p>暂无数据，请先上传Excel文件并输入关键词搜索</p>
+                </div>
+            </div>
+        </section>
+        
+        <div class="footer">
+            <p>Excel数据查询系统 &copy; 2023 | 专为手机端优化</p>
+        </div>
+    </div>
+
+    <!-- 引入SheetJS库用于解析Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <script>
+        // 全局变量
+        let allData = []; // 存储所有表格数据
+        let fileCount = 0; // 文件计数
+        
+        // DOM元素
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const dropArea = document.getElementById('dropArea');
+        const fileList = document.getElementById('fileList');
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultsCount = document.getElementById('resultsCount');
+        const tableCount = document.getElementById('tableCount');
+        const rowCount = document.getElementById('rowCount');
+        const fileCountElement = document.getElementById('fileCount');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        
+        // 事件监听
+        uploadBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+        
+        // 处理文件选择
+        function handleFileSelect(e) {
+            handleFiles(e.target.files);
+        }
+        
+        // 处理文件
+        function handleFiles(files) {
+            if (fileCount + files.length > 10) {
+                alert('最多只能上传10个文件');
+                return;
+            }
+            
+            let processedFiles = 0;
+            
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.name.match(/\.(xlsx|xls)$/)) {
+                    processExcelFile(file);
+                    addFileToList(file.name);
+                    fileCount++;
+                    processedFiles++;
+                } else {
+                    alert(`文件 "${file.name}" 不是有效的Excel文件`);
+                }
+            }
+            
+            if (processedFiles > 0) {
+                dropArea.classList.add('active');
+                setTimeout(() => {
+                    dropArea.classList.remove('active');
+                }, 2000);
+            }
+            
+            fileInput.value = ''; // 重置文件输入
+        }
+        
+        // 处理Excel文件
+        function processExcelFile(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    
+                    // 遍历所有工作表
+                    workbook.SheetNames.forEach(sheetName => {
+                        const worksheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                        
+                        // 提取表头和数据
+                        const headers = jsonData[0];
+                        const rows = jsonData.slice(1, 1501); // 限制最多1500行
+                        
+                        // 添加到全局数据
+                        rows.forEach(row => {
+                            if (row.length > 0) {
+                                const rowData = {};
+                                headers.forEach((header, index) => {
+                                    rowData[header] = row[index] || '';
+                                });
+                                allData.push({
+                                    table: `${file.name} - ${sheetName}`,
+                                    data: rowData
+                                });
+                            }
+                        });
+                    });
+                    
+                    // 更新统计信息
+                    updateStats();
+                    
+                } catch (error) {
+                    console.error('解析Excel文件时出错:', error);
+                    dropArea.classList.add('error');
+                    setTimeout(() => {
+                        dropArea.classList.remove('error');
+                    }, 3000);
+                    alert(`解析文件 "${file.name}" 时出错: ${error.message}`);
+                }
+            };
+            
+            reader.onerror = function() {
+                dropArea.classList.add('error');
+                setTimeout(() => {
+                    dropArea.classList.remove('error');
+                }, 3000);
+                alert(`读取文件 "${file.name}" 时出错`);
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // 添加文件到列表
+        function addFileToList(fileName) {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.innerHTML = `
+                <div class="file-info">
+                    <i class="fas fa-file-excel file-icon"></i>
+                    <span class="file-name">${fileName}</span>
+                </div>
+                <button class="file-remove" data-file="${fileName}">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            fileList.appendChild(fileItem);
+            
+            // 添加删除事件
+            fileItem.querySelector('.file-remove').addEventListener('click', function() {
+                const fileNameToRemove = this.getAttribute('data-file');
+                removeFile(fileNameToRemove);
+                fileItem.remove();
+            });
+        }
+        
+        // 移除文件及其数据
+        function removeFile(fileName) {
+            // 从allData中移除该文件的数据
+            allData = allData.filter(item => !item.table.startsWith(fileName));
+            fileCount--;
+            updateStats();
+            performSearch(); // 重新搜索以更新结果
+        }
+        
+        // 更新统计信息
+        function updateStats() {
+            // 计算表格数量（去重）
+            const tables = [...new Set(allData.map(item => item.table))];
+            tableCount.textContent = tables.length;
+            rowCount.textContent = allData.length;
+            fileCountElement.textContent = fileCount;
+        }
+        
+        // 执行搜索
+        function performSearch() {
+            const keyword = searchInput.value.trim();
+            
+            if (!keyword) {
+                alert('请输入搜索关键词');
+                return;
+            }
+            
+            if (allData.length === 0) {
+                alert('请先上传Excel文件');
+                return;
+            }
+            
+            // 显示加载指示器
+            loadingIndicator.style.display = 'block';
+            resultsContainer.innerHTML = '';
+            
+            // 使用setTimeout让UI有机会更新
+            setTimeout(() => {
+                const results = [];
+                
+                // 遍历所有数据行进行搜索
+                allData.forEach(item => {
+                    let matchFound = false;
+                    const highlightedData = {};
+                    
+                    // 检查每个字段是否包含关键词
+                    Object.keys(item.data).forEach(key => {
+                        const value = String(item.data[key] || '');
+                        if (value.toLowerCase().includes(keyword.toLowerCase())) {
+                            matchFound = true;
+                            // 高亮显示匹配的关键词
+                            const regex = new RegExp(`(${escapeRegExp(keyword)})`, 'gi');
+                            highlightedData[key] = value.replace(regex, '<span class="highlight">$1</span>');
+                        } else {
+                            highlightedData[key] = value;
+                        }
+                    });
+                    
+                    if (matchFound) {
+                        results.push({
+                            table: item.table,
+                            data: highlightedData
+                        });
+                    }
+                });
+                
+                // 显示结果
+                displayResults(results);
+                
+                // 隐藏加载指示器
+                loadingIndicator.style.display = 'none';
+            }, 100);
+        }
+        
+        // 转义正则表达式特殊字符
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+        
+        // 显示搜索结果
+        function displayResults(results) {
+            resultsCount.textContent = `${results.length} 条记录`;
+            
+            if (results.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon"><i class="fas fa-search-minus"></i></div>
+                        <p>未找到匹配的记录</p>
+                        <p class="upload-hint" style="margin-top: 10px;">尝试使用其他关键词或检查拼写</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            results.forEach(result => {
+                html += `
+                    <div class="result-item">
+                        <div class="result-table">
+                            <i class="fas fa-table"></i> ${result.table}
+                        </div>
+                        <div class="result-row">
+                `;
+                
+                Object.keys(result.data).forEach(key => {
+                    html += `
+                        <div class="result-field">
+                            <div class="result-label">${key}</div>
+                            <div class="result-value">${result.data[key]}</div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultsContainer.innerHTML = html;
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加触摸反馈
+            const buttons = document.querySelectorAll('.btn, .file-remove');
+            buttons.forEach(button => {
+                button.addEventListener('touchstart', function() {
+                    this.style.opacity = '0.7';
+                });
+                
+                button.addEventListener('touchend', function() {
+                    this.style.opacity = '1';
+                });
+            });
+            
+            // 防止iOS Safari缩放
+            document.addEventListener('touchstart', function(e) {
+                if (e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            });
+            
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function(e) {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+        });
+    </script>
+</body>
+</html>
